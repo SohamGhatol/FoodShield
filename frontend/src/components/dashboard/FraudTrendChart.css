@@ -1,0 +1,19 @@
+.chart-container {
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-title {
+    color: var(--color-text-main);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+
+.chart-wrapper {
+    flex: 1;
+    width: 100%;
+}
