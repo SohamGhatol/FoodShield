@@ -122,3 +122,17 @@
     color: var(--color-primary);
     background: rgba(236, 72, 153, 0.1);
 }
+
+.action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.status-final-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    padding: 0.2rem 0.5rem;
+}

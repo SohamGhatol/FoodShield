@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # 1. Database Service
+  database:
+    image: postgres:16-alpine
+    container_name: foodshield-db
+    environment:
+      POSTGRES_DB: foodshield_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432" # Mapped to 5433 to avoid conflict with local Postgres on 5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - foodshield-net
+
+  # 2. Backend Service (Spring Boot)
+  backend:
+    build: ./backend
+    container_name: foodshield-backend
+    ports:
+      - "8080:8080"
+    volumes:
+      - foodshield-uploads:/app/uploads
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/foodshield_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - foodshield-net
+
+  # 3. Frontend Service (React + Nginx)
+  frontend:
+    build: ./frontend
+    container_name: foodshield-frontend
+    ports:
+      - "5173:80" # Map host 5173 to container 80 (Nginx)
+    depends_on:
+      - backend
+    networks:
+      - foodshield-net
+
+  # 4. ML Service (Python Flask)
+  ml-service:
+    build: ./ml_service
+    container_name: foodshield-ml
+    ports:
+      - "5000:5000"
+    volumes:
+      - foodshield-uploads:/app/uploads
+    networks:
+      - foodshield-net
+
+volumes:
+  postgres_data:
+  foodshield-uploads:
+
+
+networks:
+  foodshield-net:
+    driver: bridge

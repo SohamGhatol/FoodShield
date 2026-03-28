@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
 import { ShieldAlert, KeyRound, Mail } from 'lucide-react';
 import './Login.css';
 
@@ -9,14 +10,31 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const handleLogin = (e) => {
+
+
+    const handleLogin = async (e) => {
         e.preventDefault();
         setLoading(true);
-        // Simulate API call
-        setTimeout(() => {
+
+        try {
+            const response = await api.post('/auth/login', {
+                username: email,
+                password: password
+            });
+
+            if (response.data && response.data.token) {
+                localStorage.setItem('token', response.data.token);
+                localStorage.setItem('user', JSON.stringify(response.data));
+                navigate('/dashboard');
+            } else {
+                alert("Login failed: No token received");
+            }
+        } catch (error) {
+            console.error("Login Error", error);
+            alert("Login Failed: " + (error.response?.data || error.message));
+        } finally {
             setLoading(false);
-            navigate('/dashboard');
-        }, 1500);
+        }
     };
 
     return (

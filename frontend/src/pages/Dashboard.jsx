@@ -1,58 +1,78 @@
+/* eslint-disable */
 import { useState, useEffect } from 'react';
-import { Play, Plus } from 'lucide-react';
-import { statsData, fraudTrendData, recentClaims as initialClaims, blacklistUsers } from '../services/mockData';
+import { Plus } from 'lucide-react';
+import api from '../services/api';
+import { fraudTrendData } from '../services/mockData';
 import StatCard from '../components/dashboard/StatCard';
 import FraudTrendChart from '../components/dashboard/FraudTrendChart';
 import RecentClaimsTable from '../components/dashboard/RecentClaimsTable';
 import RequestSummary from '../components/dashboard/RequestSummary';
+import SubmitClaimModal from '../components/dashboard/SubmitClaimModal';
 import './Dashboard.css';
 
 const Dashboard = () => {
-    const [claims, setClaims] = useState(initialClaims);
-    const [isSimulating, setIsSimulating] = useState(false);
+    const [stats, setStats] = useState([
+        { label: 'Total Claims', value: '...', change: '', trend: 'neutral' },
+        { label: 'Fraud Detected', value: '...', change: '', trend: 'neutral' },
+        { label: 'Pending Review', value: '...', change: '', trend: 'neutral' },
+        { label: 'Est. Savings', value: '...', change: '', trend: 'neutral' },
+    ]);
+    const [summaryStats, setSummaryStats] = useState(null);
+    const [claims, setClaims] = useState([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const simulateNewClaim = () => {
-        setIsSimulating(true);
-        const newClaimId = `CLM-2024-${Math.floor(Math.random() * 1000)}`;
+    const fetchDashboardData = async () => {
+        try {
+            // Fetch real stats from backend
+            const [statsRes, claimsRes] = await Promise.all([
+                api.get('/dashboard/stats'),
+                api.get('/claims'),
+            ]);
 
-        // Randomly decide if this is a blacklist user (30% chance)
-        const isBlacklisted = Math.random() < 0.3;
-        const blacklistedUser = blacklistUsers[Math.floor(Math.random() * blacklistUsers.length)];
+            const s = statsRes.data;
+            setSummaryStats(s);
 
-        // 1. Add "Analyzing" Claim
-        const pendingClaim = {
-            id: newClaimId,
-            user: isBlacklisted ? blacklistedUser.name : 'Anonymous User',
-            amount: '...',
-            restaurant: 'Processing...',
-            date: 'Just now',
-            riskScore: 0,
-            status: 'Analyzing', // Custom status for demo
-            image: 'https://placehold.co/100?text=Analyzing'
-        };
+            setStats([
+                {
+                    label: 'Total Claims',
+                    value: s.total_claims?.toString() ?? '0',
+                    change: '',
+                    trend: 'neutral',
+                },
+                {
+                    label: 'Fraud Detected',
+                    value: s.auto_rejected?.toString() ?? '0',
+                    change: '',
+                    trend: s.auto_rejected > 0 ? 'up' : 'neutral',
+                },
+                {
+                    label: 'Pending Review',
+                    value: s.pending_reviews?.toString() ?? '0',
+                    change: '',
+                    trend: s.pending_reviews > 0 ? 'up' : 'neutral',
+                },
+                {
+                    label: 'Est. Savings',
+                    value: `$${(s.total_savings ?? 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}`,
+                    change: '',
+                    trend: 'up',
+                },
+            ]);
 
-        setClaims(prev => [pendingClaim, ...prev]);
+            setClaims(claimsRes.data);
+        } catch (error) {
+            console.error('Failed to fetch dashboard data', error);
+        }
+    };
 
-        // 2. Simulate AI Processing Delay (3 seconds)
-        setTimeout(() => {
-            const isFraud = isBlacklisted || Math.random() > 0.5;
+    useEffect(() => {
+        // eslint-disable-next-line react-compiler/react-compiler
+        fetchDashboardData();
+    }, []);
 
-            const finalClaim = {
-                ...pendingClaim,
-                user: isBlacklisted ? blacklistedUser.name : (isFraud ? 'Suspicious Actor' : 'Verified Customer'),
-                amount: `₹${Math.floor(Math.random() * 2000) + 100}`,
-                restaurant: isFraud ? 'Burger King' : 'Starbucks',
-                riskScore: isFraud ? Math.floor(Math.random() * 30) + 70 : Math.floor(Math.random() * 20),
-                status: isFraud ? 'High Risk' : 'Safe',
-                decisionMode: isFraud ? 'Automated' : 'Manual', // Auto-reject fraud, manual for others
-                image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=60',
-                userStats: isBlacklisted ? { nature: 'Serial Abuser', totalClaims: 15, rejected: 12 } : null,
-                fraudAnalysis: isBlacklisted ? `User match found in Blacklist: ${blacklistedUser.reason}` : null
-            };
 
-            setClaims(prev => prev.map(c => c.id === newClaimId ? finalClaim : c));
-            setIsSimulating(false);
-        }, 3000);
+    const handleClaimSubmitted = async () => {
+        fetchDashboardData();
     };
 
     return (
@@ -64,17 +84,22 @@ const Dashboard = () => {
                 </div>
                 <button
                     className="action-btn-lg approve"
-                    onClick={simulateNewClaim}
-                    disabled={isSimulating}
+                    onClick={() => setIsModalOpen(true)}
                     style={{ gap: '0.5rem' }}
                 >
-                    {isSimulating ? <Play size={18} className="spin" /> : <Plus size={18} />}
-                    {isSimulating ? 'Processing...' : 'Simulate New Claim'}
+                    <Plus size={18} />
+                    File New Claim
                 </button>
             </div>
 
+            <SubmitClaimModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onClaimSubmitted={handleClaimSubmitted}
+            />
+
             <div className="stats-grid">
-                {statsData.map((stat, index) => (
+                {stats.map((stat, index) => (
                     <StatCard key={index} {...stat} />
                 ))}
             </div>
@@ -84,7 +109,7 @@ const Dashboard = () => {
                     <FraudTrendChart data={fraudTrendData} />
                 </div>
                 <div className="recent-activity">
-                    <RequestSummary />
+                    <RequestSummary stats={summaryStats} />
                 </div>
             </div>
 

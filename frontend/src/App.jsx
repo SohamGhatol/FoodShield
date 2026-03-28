@@ -8,6 +8,8 @@ import Login from './pages/Login';
 import Landing from './pages/Landing';
 import Blacklist from './pages/Blacklist';
 import Reports from './pages/Reports';
+import AuditLog from './pages/AuditLog';
+import UserManagement from './pages/UserManagement';
 
 function App() {
   return (
@@ -27,6 +29,8 @@ function App() {
               <Route path="settings" element={<Settings />} />
               <Route path="blacklist" element={<Blacklist />} />
               <Route path="reports" element={<Reports />} />
+              <Route path="audit-log" element={<AuditLog />} />
+              <Route path="users" element={<UserManagement />} />
               {/* Fallback for unknown admin routes */}
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>

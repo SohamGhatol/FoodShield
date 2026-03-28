@@ -27,19 +27,32 @@ public class DashboardController {
         Map<String, Object> stats = new HashMap<>();
 
         long totalClaims = claimRepository.count();
-        long pendingClaims = claimRepository.findByStatus("ANALYZING").size()
-                + claimRepository.findByStatus("REVIEW").size();
-        long approvedClaims = claimRepository.findByStatus("SAFE").size(); // Assuming SAFE means approved/refunded for
-                                                                           // now
-        long rejectedClaims = claimRepository.findByStatus("HIGH_RISK").size()
-                + claimRepository.findByStatus("FRAUD").size();
+
+        long reviewClaims = claimRepository.countByStatus("REVIEW");
+        long analyzingClaims = claimRepository.countByStatus("ANALYZING");
+        long safeClaims = claimRepository.countByStatus("SAFE");
+        long highRiskClaims = claimRepository.countByStatus("HIGH_RISK");
+        long rejectedClaims = claimRepository.countByStatus("REJECTED");
+
+        long pendingReviews = reviewClaims + analyzingClaims;
+        long autoApproved = safeClaims;
+        long autoRejected = highRiskClaims + rejectedClaims;
+        long automatedDecisions = autoApproved + autoRejected;
+
+        // Savings estimate: sum of amounts for HIGH_RISK and REJECTED
+        Double totalSavings = claimRepository.calculateTotalSavings();
+        if (totalSavings == null)
+            totalSavings = 0.0;
 
         long totalUsers = userRepository.count();
 
         stats.put("total_claims", totalClaims);
-        stats.put("pending_reviews", pendingClaims);
-        stats.put("auto_approved", approvedClaims);
-        stats.put("auto_rejected", rejectedClaims);
+        stats.put("pending_reviews", pendingReviews);
+        stats.put("manual_review", reviewClaims);
+        stats.put("auto_approved", autoApproved);
+        stats.put("auto_rejected", autoRejected);
+        stats.put("automated_decisions", automatedDecisions);
+        stats.put("total_savings", totalSavings);
         stats.put("active_users", totalUsers);
 
         return stats;

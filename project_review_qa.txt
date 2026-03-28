@@ -1,0 +1,61 @@
+# FoodShield Project Review Questionnaire & Edge Cases
+
+This document contains potential questions, detailed answers, and edge case scenarios that evaluators or judges might ask during your project review.
+
+=========================================
+SECTION 1: CORE ARCHITECTURE & ML MODEL
+=========================================
+
+Q1: Why did you choose EfficientNetB0 over a custom Convolutional Neural Network (CNN)?
+A: EfficientNetB0 offers a superior balance of accuracy and computational efficiency. A custom CNN trained from scratch on a small dataset (800 images) would likely suffer from severe overfitting. By using transfer learning with an EfficientNetB0 base pre-trained on ImageNet, we start with a model that already understands basic image features (edges, textures, shapes). We only had to train the final classification head to differentiate between real and AI-generated artifacts, making our training much faster and our model significantly more robust.
+
+Q2: How does the system confirm the uploaded image is actually food?
+A: Before we check for AI generation, the image goes through a pre-screening phase using MobileNetV2. MobileNetV2 outputs a prediction of what the object is (out of 1000 categories). We check its top predictions against a hardcoded list of over 80 food keywords (including global cuisines like "biryani", "pizza", "sushi", "burger"). If the image doesn't match any food keyword, the claim is instantly rejected with a 100% Risk Score before the AI detection model even runs.
+
+Q3: What datasets did you use to train the AI detection model?
+A: For "Real" images, we used an automated script to pull authentic, real-world food photographs from the Open Food Facts CDN. For "Fake" (AI-generated) images, we utilized the CIFAKE dataset from Hugging Face, specifically pulling from the "FAKE" labeled subset.
+
+Q4: What happens if your ML model is "uncertain" about an image? Does it just guess?
+A: No, we implemented an Uncertainty Band. If the model's confidence prediction falls between 0.35 and 0.65, we consider the model "uncertain". Instead of making a definitive (and potentially wrong) automated decision, the backend explicitly flags this claim with a "REVIEW" status. This routes the claim to a human administrator, ensuring edge cases don't result in false rejections of legitimate customers.
+
+=========================================
+SECTION 2: BACKEND & FRAUD LOGIC
+=========================================
+
+Q5: Aside from the ML image scan, how else does the Fraud Engine evaluate a claim?
+A: The final Risk Score is a weighted calculation:
+- 60% weight is given to the ML AI Score (is the image generative AI?)
+- 20% weight is given to Metadata (e.g., Image Forensics/EXIF data, currently simulated but designed for extension)
+- 20% weight is given to Behavioral Score (e.g., Has this user submitted abnormally high rates of claims recently?)
+
+Q6: How does the system handle a known bad actor?
+A: We implemented a Blacklist feature. Administrators can add a user's ID/username to the blacklist. The FraudEngineService checks this list immediately when a claim is submitted. If the user is on it, the claim is instantly assigned a 100% Risk Score and the status is forced to REJECTED, completely bypassing the ML analysis to save server resources.
+
+Q7: Is the system secure? How handles authentication?
+A: Yes, the Spring Boot backend is secured using Spring Security and JSON Web Tokens (JWT). Most API endpoints require a valid Bearer token for access. Passwords in the database are hashed using BCrypt. While some endpoints (like GET /api/claims) are public for the sake of our current demonstration, the architecture is designed for full production-grade security.
+
+=========================================
+SECTION 3: EDGE CASES & TRICK QUESTIONS
+=========================================
+
+Edge Case 1: "What if a customer actually puts a real bug or a real hair in their food and takes a real picture of it to get a refund?"
+Answer: Our ML model will correctly identify the photo as 100% real. However, physical tampering is unscalable and low-volume. FoodShield is primarily designed to stop the massively scalable threat of generative AI fraud. For physical tampering, our "Defense in Depth" strategy kicks in: the Behavioral Scoring engine will detect if this user makes frequent claims, eventually routing them to manual review or blacklisting them.
+
+Edge Case 2: "What if a user takes a picture of a random object (e.g., a shoe) and submits it as a food claim?"
+Answer: The system will catch this immediately. Our first ML phase (MobileNetV2) verifies the object class. If "shoe" does not match our extensive food keyword list, the claim is instantly assigned a Risk Score of 100 and status REJECTED.
+
+Edge Case 3: "What if a user takes a photo of an AI-generated image displayed on their laptop screen with their phone?" (A photo of a screen)
+Answer: This is a challenging adversarial attack. While the pixels themselves are "real" because it's a photo being taken by a phone camera, the image on the screen contains AI artifacts, plus the Moire pattern from the screen itself. Our EfficientNet model may detect the underlying AI artifacts, but if it is confused and outputs a confidence near 50%, our system handles this gracefully via the "Uncertainty Band," routing the suspicious screen-grab to Manual Review rather than automatically approving it.
+
+Edge Case 4: "What if the ML Service Container goes down or crashes during a submission?"
+Answer: If the backend fails to connect to the ML Service (e.g., timeout or 500 error), the `MLServiceClient` will throw an exception. The Spring Boot backend will catch this exception inside `ClaimService`, preventing the claim from saving with corrupted data, and will return a 500 error to the frontend telling the user to "Please try again later." The transaction is rolled back.
+
+=========================================
+SECTION 4: FRONTEND & USABILITY
+=========================================
+
+Q8: Why did you choose React and Vite for the frontend?
+A: React allows for highly reusable component architecture (like our StatCards and StatusBadges), and Vite provides significantly faster hot-module replacement and build times compared to Create React App. This allowed us to iterate on the UI very quickly.
+
+Q9: How do administrators interact with the automated decisions?
+A: Administrators have a Dashboard that splits claims into an "Automated Decisions" queue and a "Manual Review Queue." They can view a detailed breakdown of how the Risk Score was calculated. If the system made a mistake, admins have "Approve" and "Reject" override buttons on the Claim Detail page to force a final status change.

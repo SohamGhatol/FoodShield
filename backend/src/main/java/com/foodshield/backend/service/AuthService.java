@@ -6,10 +6,7 @@ import com.foodshield.backend.model.User;
 import com.foodshield.backend.repository.UserRepository;
 import com.foodshield.backend.util.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -32,23 +29,37 @@ public class AuthService {
     // I need to define AuthenticationManager bean in SecurityConfig.
 
     public JwtResponse authenticateUser(LoginRequest loginRequest) {
-        // Mock authentication for initial setup if DB is empty or for testing
-        if ("admin".equals(loginRequest.getUsername()) && "admin123".equals(loginRequest.getPassword())) {
-            return new JwtResponse("mock-jwt-token-for-admin", 1L, "admin", "ADMIN");
+        // Normalize "admin" to the full email
+        String usernameInput = loginRequest.getUsername();
+        if ("admin".equals(usernameInput)) {
+            usernameInput = "admin@foodshield.com";
         }
 
-        User user = userRepository.findByUsername(loginRequest.getUsername())
+        // Auto-create admin if it doesn't exist (for demo purposes)
+        // Check for specific hardcoded credentials to trigger creation
+        String targetEmail = "admin@foodshield.com";
+        if (targetEmail.equals(usernameInput) && "admin".equals(loginRequest.getPassword())) {
+            if (userRepository.findByUsername(targetEmail).isEmpty()) {
+                User admin = new User();
+                admin.setUsername(targetEmail);
+                admin.setPassword(passwordEncoder.encode("admin"));
+                admin.setRole("SUPER_ADMIN");
+                admin.setTrustLevel("PLATINUM");
+                admin.setEmail(targetEmail);
+                userRepository.save(admin);
+            }
+        }
+
+        User user = userRepository.findByUsername(usernameInput)
                 .orElseThrow(() -> new RuntimeException("Error: User not found."));
 
         if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             throw new RuntimeException("Error: Invalid password.");
         }
 
-        // Create manual authentication object
-        Authentication authentication = new UsernamePasswordAuthenticationToken(user.getUsername(), null);
+        String jwt = jwtUtils.generateJwtToken(
+                new UsernamePasswordAuthenticationToken(user.getUsername(), null));
 
-        String jwt = jwtUtils.generateJwtToken(authentication);
-
-        return new JwtResponse(jwt, user.getId(), user.getUsername(), user.getRole());
+        return new JwtResponse(jwt, user.getId(), user.getUsername(), user.getRole(), user.getTrustLevel());
     }
 }

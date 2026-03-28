@@ -1,103 +1,275 @@
-# 🛡️ FoodShield - Enterprise Fraud Detection Platform
+# 🍽️ FoodShield — AI-Powered Food Fraud Detection Platform
 
-**FoodShield** is an AI-powered fraud detection system designed to combat refund abuse in food delivery platforms. It combines computer vision, behavioral analytics, and metadata forensics to detect fake claims, serial abusers, and organized fraud rings.
-
-![FoodShield Dashboard](https://via.placeholder.com/800x400.png?text=FoodShield+Dashboard+Preview)
+FoodShield is a full-stack web application that uses machine learning to detect fraudulent food delivery refund claims. It analyzes uploaded food images for AI generation artifacts, verifies food content, assigns risk scores, and flags suspicious claims for review.
 
 ---
 
-## 🚀 Key Features
+## 🏗️ Architecture Overview
 
-### 1. 📊 Intelligent Dashboard
-*   **Real-time Overview**: Monitor total claims, fraud rates, and estimated savings.
-*   **Smart Queues**: Claims are automatically sorted into **"Automated Decisions"** (High Confidence) and **"Manual Review"** (Ambiguous).
-*   **Fraud Trends**: Visual graphs showing fraud activity over time.
+```
+┌─────────────────┐     ┌──────────────────┐     ┌───────────────────┐
+│   React Frontend│────▶│  Spring Boot API  │────▶│  Python ML Service│
+│   (Vite, port   │     │  (Java, port 8080)│     │  (Flask, port 5000│
+│    5173)        │     │                   │     │                   │
+└─────────────────┘     └──────────────────┘     └───────────────────┘
+                                 │                          │
+                         ┌───────▼──────┐         ┌────────▼────────┐
+                         │  PostgreSQL   │         │  EfficientNetB0  │
+                         │  (port 5432) │         │  + MobileNetV2   │
+                         └──────────────┘         └─────────────────┘
+```
 
-### 2. 🕵️‍♂️ Advanced Claims Management
-*   **AI Analysis**: Every uploaded image is analyzed for:
-    *   **Generative AI Creation** (Midjourney/DALL-E detection).
-    *   **Metadata Tampering** (Edited EXIF data).
-    *   **Internet Duplicates** (Reverse image search simulation).
-*   **Trust Score**: A unified 0-100 score indicating the legitimacy of a claim.
-
-### 3. 🚫 Blacklist & Serial Abuser Tracking
-*   **Identifies Repeat Offenders**: Users with a history of rejected claims are flagged.
-*   **Compact Watchlist**: Manage high-risk users with a dedicated blacklist interface.
-*   **Pattern Recognition**: Detects users creating multiple accounts on the same device.
-
-### 4. 📈 Analytics & Reports
-*   **Deep Dive Metrics**: Analyze fraud attempts by region or restaurant.
-*   **Financial Impact**: Track cumulative money saved by blocking fraudulent refunds.
-*   **Exportable Data**: Generate PDF/CSV reports for stakeholders.
-
----
-
-## 🛠️ Technology Stack
-
-### Frontend
-*   **Framework**: React (Vite)
-*   **Styling**: Modern CSS (Glassmorphism, Dark Theme)
-*   **Charts**: Recharts (Interactive Data Visualization)
-*   **Icons**: Lucide React
-*   **Routing**: React Router DOM
-
-### Backend
-*   **Framework**: Java Spring Boot
-*   **Security**: JWT Authentication, Spring Security
-*   **Database**: PostgreSQL
-*   **AI Engine**: Python Microservices (Integration Ready)
+### Services
+| Service | Technology | Port | Description |
+|---------|------------|------|-------------|
+| `frontend` | React + Vite | 5173 | Admin dashboard UI |
+| `backend` | Spring Boot 3 + Java 17 | 8080 | REST API, JWT auth, fraud engine |
+| `ml-service` | Python 3.9, Flask, TensorFlow | 5000 | Image analysis (EfficientNetB0) |
+| `db` | PostgreSQL 15 | 5432 | Persistent data store |
 
 ---
 
-## ⚙️ Setup & Installation
+## 🚀 Getting Started
 
 ### Prerequisites
-*   Node.js (v18+)
-*   Java JDK 21
-*   Maven
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (with Docker Compose)
+- [Node.js 18+](https://nodejs.org/) (for frontend dev mode only)
+- [Python 3.9+](https://www.python.org/) (for ML training only)
 
-### 1. Frontend Setup
+### 1. Clone the Repository
+```bash
+git clone https://github.com/SohamGhatol/FoodShield.git
+cd FoodShield
+```
+
+### 2. Start All Services
+```bash
+docker-compose up --build -d
+```
+
+This starts all 4 services. Wait about 60 seconds for the backend and ML service to fully initialize.
+
+### 3. Access the Application
+| URL | Description |
+|-----|-------------|
+| http://localhost:5173 | Frontend (Landing page) |
+| http://localhost:5173/dashboard | Admin Dashboard |
+| http://localhost:8080/api/dashboard/stats | Backend Health Check |
+| http://localhost:5000/health | ML Service Health |
+
+---
+
+## 🔐 Default Login Credentials
+
+| Username | Password | Role |
+|----------|----------|------|
+| `admin` | `admin` | Admin |
+
+> The admin account is auto-created on first login if it doesn't exist in the database.
+
+---
+
+## 📋 Features
+
+### ✅ Claims Management
+- **Submit Claims**: Upload a food photo with restaurant name, claimant name, and amount
+- **AI Analysis**: Automatic image analysis on submission (food verification + AI detection)
+- **Filter & Sort**: Filter by status (ALL/HIGH_RISK/REVIEW/SAFE/REJECTED), risk score range; sort by date, risk score, or status priority
+- **Export CSV**: Download all visible claims as a spreadsheet
+- **Approve/Reject**: Manual one-click status updates from claim list and detail views
+- **Claim Detail View**: Full breakdown of AI score, metadata score, behavioral score, and explanation
+
+### 🤖 ML Fraud Engine
+- **Two-model pipeline**:
+  - `MobileNetV2` (ImageNet) — checks if it's actually food (1000-class classifier)
+  - `EfficientNetB0` (trained) — detects AI-generated vs real photos
+- **Food keyword matching**: 80+ food terms including Indian/Asian cuisines
+- **Uncertainty band**: Confidence 0.35–0.65 → routes to Manual Review instead of auto-reject
+- **Weighted risk score**: `0.6*AI + 0.2*Metadata + 0.2*Behavioral`
+- **Blacklist check**: Instant rejection for blacklisted users
+
+### 📊 Dashboard & Reports
+- Real-time statistics: Total Claims, Fraud Detected, Pending Review, Estimated Savings
+- Manual Review Queue vs Automated Decisions split view
+- Charts: Fraud vs Legitimate trends (by month), Cumulative Savings
+- Top High-Risk Restaurants table
+
+### ⚙️ Settings
+- Configurable fraud detection thresholds (auto-reject score, manual review range)
+- Data retention period
+- Email/Slack alert toggles (stored in DB)
+
+### 🚫 Blacklist
+- Add users to a blacklist with a reason
+- All future claims from blacklisted users are auto-rejected with risk score 100
+
+---
+
+## 🧠 ML Model Details
+
+### Model Architecture
+- **Base**: `EfficientNetB0` pre-trained on ImageNet
+- **Training**: Two-phase transfer learning
+  - Phase 1: Frozen base, train classification head (30 epochs, early stopping on AUC)
+  - Phase 2: Unfreeze top 30 layers, fine-tune at LR/10 (15 epochs)
+- **Augmentation**: Random rotation, brightness, zoom, horizontal flip
+- **Output**: Binary sigmoid (0 = Real, 1 = AI-generated)
+
+### Dataset
+- **Real images**: 400 food photos from [Open Food Facts](https://world.openfoodfacts.org/) CDN
+- **AI images**: 400 fake images from [CIFAKE dataset](https://huggingface.co/datasets/dragonintelligence/CIFAKE-image-dataset) (Hugging Face)
+
+### Retrain the Model
+```bash
+# From the FoodShield/ml_service directory on the HOST (not in Docker)
+pip install tensorflow keras pillow datasets huggingface_hub scipy
+
+# Download dataset (idempotent — skips already-downloaded files)
+python prepare_dataset.py --real-count 1000 --ai-count 1000
+
+# Train
+python train.py
+
+# Rebuild the Docker image to use the new model
+cd ..
+docker-compose up --build -d ml-service
+```
+
+---
+
+## 🔌 API Endpoints
+
+### Authentication
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/login` | Login, receive JWT token |
+| POST | `/api/auth/register` | Register a new user |
+
+### Claims
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/api/claims` | ✅ | Submit a new claim with image |
+| GET | `/api/claims` | Public | List all claims |
+| GET | `/api/claims/{id}` | Public | Get claim details + fraud analysis |
+| PUT | `/api/claims/{id}/status` | ✅ | Update claim status |
+
+### Dashboard & Reports
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/dashboard/stats` | Get aggregate statistics |
+| GET | `/api/reports/monthly` | Monthly fraud/legitimate trends |
+
+### Settings & Blacklist
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET/PUT | `/api/settings` | Read/update system config |
+| GET/POST | `/api/blacklist` | View/add blacklisted users |
+| DELETE | `/api/blacklist/{id}` | Remove from blacklist |
+
+### Images
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/images/{filename}` | Serve uploaded claim images |
+
+---
+
+## ⚙️ Docker Configuration
+
+### docker-compose.yml Summary
+```yaml
+services:
+  db:          PostgreSQL 15, port 5432
+  backend:     Spring Boot, port 8080, depends on db
+  ml-service:  Flask + TensorFlow, port 5000, shares /uploads volume with backend
+  frontend:    React/Vite dev server, port 5173, proxies /api → backend:8080
+```
+
+### Volume Mounts
+- `ml-service` and `backend` share a Docker volume at `/uploads` — claim images are written by the backend and read by the ML service via file path.
+
+---
+
+## 🛠️ Development
+
+### Frontend (Hot Reload)
 ```bash
 cd frontend
 npm install
-npm run dev
+npm run dev   # http://localhost:5173
 ```
-Access the dashboard at `http://localhost:5173`
 
-### 2. Backend Setup
+### Backend (Local)
 ```bash
+# Requires PostgreSQL running locally on port 5432
 cd backend
-mvn clean install
-mvn spring-boot:run
+./mvnw spring-boot:run
 ```
-API runs on `http://localhost:8080`
+
+### ML Service (Local)
+```bash
+cd ml_service
+pip install flask tensorflow pillow
+python app.py   # http://localhost:5000
+```
 
 ---
 
-## 🧠 Fraud Detection Logic
+## 🐛 Known Limitations & Future Improvements
 
-FoodShield calculates a **Unified Fraud Score** based on multiple factors:
-
-| Weight | Factor | Description |
-| :--- | :--- | :--- |
-| **30%** | **AI Analysis** | Is the image AI-generated or edited? |
-| **25%** | **Forensics** | Does ELA analysis show tampering? |
-| **20%** | **Behavior** | Does the user have a high refund rate? |
-| **15%** | **Duplicates** | Has this image been used before? |
-| **10%** | **Device** | Is the device ID associated with other bans? |
-
-### Decision Thresholds
-*   **Score > 85**: ✅ **Auto-Approve** (High Trust)
-*   **Score < 40**: ❌ **Auto-Reject** (Likely Fraud)
-*   **40 - 85**: ⚠️ **Manual Review** (Human Analyst Required)
+| Area | Current State | Future |
+|------|---------------|--------|
+| CIFAKE training data | Generic AI images, not food-specific | Train on AI-generated food images (Stable Diffusion) |
+| Metadata analysis | Random score (mock) | Real EXIF parsing with `piexif` |
+| User history | Hardcoded placeholder in UI | Connect to real historical claims DB query |
+| Auth scope | Most endpoints public for demo | Enforce JWT auth on all PUT/POST in production |
+| ML model accuracy | ~70-80% (small dataset) | Improve with 5000+ food-specific examples |
+| ELA Analysis | UI toggle exists, backend not wired | Implement Error Level Analysis with Pillow |
 
 ---
 
-## 🔮 Future Roadmap
-*   **Live Video Verification**: Require video proof for high-value refunds.
-*   **Graph Network Analysis**: Visualizing connections between fraudulent accounts.
-*   **Real-time Alerts**: Slack/Email integration for instant fraud notifications.
+## 📁 Project Structure
+
+```
+FoodShield/
+├── backend/                        # Spring Boot API
+│   └── src/main/java/com/foodshield/backend/
+│       ├── controller/             # REST endpoints
+│       ├── service/                # Business logic (FraudEngineService, MLServiceClient...)
+│       ├── model/                  # JPA entities (Claim, FraudAnalysis, User...)
+│       ├── repository/             # Spring Data JPA repos
+│       ├── config/                 # Security, CORS config
+│       └── util/                   # JWT utilities
+├── frontend/                       # React + Vite
+│   └── src/
+│       ├── pages/                  # Dashboard, ClaimsList, ClaimDetail, Reports, Settings...
+│       ├── components/             # StatCard, RecentClaimsTable, SubmitClaimModal...
+│       └── services/               # api.js (Axios instance with auth interceptors)
+├── ml_service/                     # Python Flask ML service
+│   ├── app.py                      # Flask API (/predict, /health)
+│   ├── train.py                    # EfficientNetB0 training pipeline
+│   ├── prepare_dataset.py          # Dataset downloader (Open Food Facts + CIFAKE)
+│   ├── cnn_model.py                # Fallback CNN architecture
+│   ├── model.h5                    # Trained model (32MB, gitignored)
+│   └── dataset/                    # Training images (gitignored)
+│       ├── real/                   # 400+ real food photos
+│       └── ai/                     # 400+ AI-generated images
+└── docker-compose.yml              # Full stack orchestration
+```
 
 ---
 
-*© 2024 FoodShield Security Systems. All Rights Reserved.*
+## 🔒 Security Notes
+
+- JWT tokens expire after 24 hours; auto-redirect to /login on 401
+- Passwords hashed with BCrypt
+- CORS configured to allow only `http://localhost:5173`
+- File uploads validated by the ML service (must be detectable as food)
+- Blacklist check happens before any ML analysis (instant rejection)
+
+> ⚠️ **For production use**: Change the JWT secret in `application.properties`, disable admin auto-creation in `AuthService.java`, restrict CORS origins, and enforce authentication on write endpoints.
+
+---
+
+## 📝 License
+
+This project is built for educational/demonstration purposes.

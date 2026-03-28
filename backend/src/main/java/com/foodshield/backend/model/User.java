@@ -21,9 +21,14 @@ public class User {
 
     private String role; // "ADMIN", "USER"
 
+    private String email;
+
+    private String trustLevel; // "PLATINUM", "GOLD", "SILVER", "BRONZE", "NEW"
+
     public User(String username, String password, String role) {
         this.username = username;
         this.password = password;
         this.role = role;
+        this.trustLevel = "NEW";
     }
 }

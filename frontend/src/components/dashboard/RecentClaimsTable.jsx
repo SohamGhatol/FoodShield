@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
-import { Eye } from 'lucide-react';
+import { Eye, Check, X } from 'lucide-react';
 import './RecentClaimsTable.css';
 
 import StatusBadge from '../common/StatusBadge';
 
-const RecentClaimsTable = ({ claims }) => {
+const RecentClaimsTable = ({ claims, onUpdateStatus }) => {
     return (
         <div className="recent-claims glass-panel">
             <div className="section-header">
@@ -31,11 +31,13 @@ const RecentClaimsTable = ({ claims }) => {
                                 <td className="claim-id">{claim.id}</td>
                                 <td>
                                     <div className="user-info">
-                                        <div className="user-avatar">{claim.user.charAt(0)}</div>
-                                        <span>{claim.user}</span>
+                                        <div className="user-avatar">
+                                            {(claim.claimantName || claim.user?.username || 'U').charAt(0).toUpperCase()}
+                                        </div>
+                                        <span>{claim.claimantName || claim.user?.username || 'Unknown User'}</span>
                                     </div>
                                 </td>
-                                <td>{claim.restaurant}</td>
+                                <td>{claim.restaurantName || claim.restaurant}</td>
                                 <td className="amount">{claim.amount}</td>
                                 <td>
                                     <div className="risk-score">
@@ -51,9 +53,33 @@ const RecentClaimsTable = ({ claims }) => {
                                 </td>
                                 <td><StatusBadge status={claim.status} /></td>
                                 <td>
-                                    <Link to={`/claims/${claim.id}`} className="action-btn">
-                                        <Eye size={18} />
-                                    </Link>
+                                    <div className="action-buttons">
+                                        {['SAFE', 'REJECTED', 'HIGH_RISK'].includes(claim.status) ? (
+                                            <span className="status-final-label">
+                                                {claim.status === 'SAFE' ? '✓ Approved' : '✗ Rejected'}
+                                            </span>
+                                        ) : (
+                                            <>
+                                                <button
+                                                    className="action-btn success"
+                                                    title="Approve"
+                                                    onClick={() => onUpdateStatus && onUpdateStatus(claim.id, 'SAFE')}
+                                                >
+                                                    <Check size={18} />
+                                                </button>
+                                                <button
+                                                    className="action-btn danger"
+                                                    title="Reject"
+                                                    onClick={() => onUpdateStatus && onUpdateStatus(claim.id, 'REJECTED')}
+                                                >
+                                                    <X size={18} />
+                                                </button>
+                                            </>
+                                        )}
+                                        <Link to={`/claims/${claim.id}`} className="action-btn">
+                                            <Eye size={18} />
+                                        </Link>
+                                    </div>
                                 </td>
                             </tr>
                         ))}

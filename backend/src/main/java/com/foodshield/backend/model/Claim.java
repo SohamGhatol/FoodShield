@@ -15,19 +15,26 @@ public class Claim {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = true) // Can be anonymous or linked to user
+    @JoinColumn(name = "user_id", nullable = true)
     private User user;
 
     private String restaurantName;
+    private String claimantName;
     private Double amount;
 
-    // Status: ANALYZING, SAFE, HIGH_RISK, REVIEW
-    private String status;
+    @Column(columnDefinition = "TEXT")
+    private String complaint;
 
-    // Risk Score: 0-100
+    private String status;
+    private String decisionMode; // "Manual" or "Automated"
     private Integer riskScore;
 
-    private String imagePath;
+    // Mapped to 'image_url' in JSON, 'imagePath' in DB
+    private String imageUrl;
+
+    @OneToOne(mappedBy = "claim", cascade = CascadeType.ALL)
+    @com.fasterxml.jackson.annotation.JsonManagedReference
+    private FraudAnalysis fraudAnalysis;
 
     private LocalDateTime createdAt;
 
@@ -36,12 +43,12 @@ public class Claim {
         createdAt = LocalDateTime.now();
     }
 
-    public Claim(String restaurantName, Double amount, String status, Integer riskScore, String imagePath, User user) {
+    public Claim(String restaurantName, Double amount, String status, Integer riskScore, String imageUrl, User user) {
         this.restaurantName = restaurantName;
         this.amount = amount;
         this.status = status;
         this.riskScore = riskScore;
-        this.imagePath = imagePath;
+        this.imageUrl = imageUrl;
         this.user = user;
     }
 }

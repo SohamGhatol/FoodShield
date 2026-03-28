@@ -1,0 +1,135 @@
+﻿C:\Users\soham\FoodShield\frontend\src\components\layout\AppLayout.jsx:1 -> 'useState' is defined but never used. Allowed unused vars must match /^[A-Z_]/u.
+C:\Users\soham\FoodShield\frontend\src\components\layout\AppLayout.jsx:1 -> 'useEffect' is defined but never used. Allowed unused vars must match /^[A-Z_]/u.
+C:\Users\soham\FoodShield\frontend\src\components\layout\AppLayout.jsx:2 -> 'useLocation' is defined but never used. Allowed unused vars must match /^[A-Z_]/u.
+C:\Users\soham\FoodShield\frontend\src\pages\Blacklist.jsx:53 -> Error: Cannot access variable before it is declared
+
+`fetchBlacklist` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  51 |
+  52 |     useEffect(() => {
+> 53 |         fetchBlacklist();
+     |         ^^^^^^^^^^^^^^ `fetchBlacklist` accessed before it is declared
+  54 |     }, []);
+  55 |
+  56 |     const fetchBlacklist = async () => {
+
+  54 |     }, []);
+  55 |
+> 56 |     const fetchBlacklist = async () => {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 57 |         try {
+     | ^^^^^^^^^^^^^
+> 58 |             const response = await api.get('/blacklist');
+     | ^^^^^^^^^^^^^
+> 59 |             setBlacklist(response.data);
+     | ^^^^^^^^^^^^^
+> 60 |             setLoading(false);
+     | ^^^^^^^^^^^^^
+> 61 |         } catch (err) {
+     | ^^^^^^^^^^^^^
+> 62 |             console.error("Failed to fetch blacklist:", err);
+     | ^^^^^^^^^^^^^
+> 63 |             setLoading(false);
+     | ^^^^^^^^^^^^^
+> 64 |         }
+     | ^^^^^^^^^^^^^
+> 65 |     };
+     | ^^^^^^^ `fetchBlacklist` is declared here
+  66 |
+  67 |     const handleAddToBlacklist = async (e) => {
+  68 |         e.preventDefault();
+C:\Users\soham\FoodShield\frontend\src\pages\ClaimsList.jsx:17 -> Error: Cannot access variable before it is declared
+
+`fetchClaims` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  15 |
+  16 |     useEffect(() => {
+> 17 |         fetchClaims();
+     |         ^^^^^^^^^^^ `fetchClaims` accessed before it is declared
+  18 |     }, []);
+  19 |
+  20 |     const fetchClaims = async () => {
+
+  18 |     }, []);
+  19 |
+> 20 |     const fetchClaims = async () => {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 21 |         try {
+     | ^^^^^^^^^^^^^
+> 22 |             setLoading(true);
+     ╬ô├ç┬¬
+     | ^^^^^^^^^^^^^
+> 31 |         }
+     | ^^^^^^^^^^^^^
+> 32 |     };
+     | ^^^^^^^ `fetchClaims` is declared here
+  33 |
+  34 |     const filteredClaims = claims.filter(claim => {
+  35 |         const matchesStatus = filterStatus === 'All' || claim.status === filterStatus;
+C:\Users\soham\FoodShield\frontend\src\pages\ClaimsList.jsx:57 -> Unexpected lexical declaration in case block.
+C:\Users\soham\FoodShield\frontend\src\pages\Dashboard.jsx:24 -> Error: Cannot access variable before it is declared
+
+`fetchDashboardData` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  22 |
+  23 |     useEffect(() => {
+> 24 |         fetchDashboardData();
+     |         ^^^^^^^^^^^^^^^^^^ `fetchDashboardData` accessed before it is declared
+  25 |     }, []);
+  26 |
+  27 |     const fetchDashboardData = async () => {
+
+  25 |     }, []);
+  26 |
+> 27 |     const fetchDashboardData = async () => {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 28 |         try {
+     | ^^^^^^^^^^^^^
+> 29 |             // Fetch real stats from backend
+     ╬ô├ç┬¬
+     | ^^^^^^^^^^^^^
+> 68 |         }
+     | ^^^^^^^^^^^^^
+> 69 |     };
+     | ^^^^^^^ `fetchDashboardData` is declared here
+  70 |
+  71 |     const handleClaimSubmitted = async () => {
+  72 |         fetchDashboardData();
+C:\Users\soham\FoodShield\frontend\src\pages\Reports.jsx:10 -> 'setDateRange' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u.
+C:\Users\soham\FoodShield\frontend\src\pages\Settings.jsx:19 -> Error: Cannot access variable before it is declared
+
+`fetchSettings` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  17 |
+  18 |     useEffect(() => {
+> 19 |         fetchSettings();
+     |         ^^^^^^^^^^^^^ `fetchSettings` accessed before it is declared
+  20 |     }, []);
+  21 |
+  22 |     const fetchSettings = async () => {
+
+  20 |     }, []);
+  21 |
+> 22 |     const fetchSettings = async () => {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 23 |         try {
+     | ^^^^^^^^^^^^^
+> 24 |             const response = await api.get('/settings');
+     | ^^^^^^^^^^^^^
+> 25 |             setConfig(response.data);
+     | ^^^^^^^^^^^^^
+> 26 |             setLoading(false);
+     | ^^^^^^^^^^^^^
+> 27 |         } catch (err) {
+     | ^^^^^^^^^^^^^
+> 28 |             console.error("Failed to fetch settings:", err);
+     | ^^^^^^^^^^^^^
+> 29 |             setLoading(false);
+     | ^^^^^^^^^^^^^
+> 30 |         }
+     | ^^^^^^^^^^^^^
+> 31 |     };
+     | ^^^^^^^ `fetchSettings` is declared here
+  32 |
+  33 |     const handleChange = (field, value) => {
+  34 |         setConfig(prev => ({ ...prev, [field]: value }));

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #0f172a; color: #e2e8f0; padding: 20px; margin: 0; }
+        .container { max-width: 600px; margin: auto; background: #1e293b; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 30px rgba(0,0,0,0.3); }
+        .header { background: linear-gradient(135deg, #10b981, #059669); padding: 30px; text-align: center; }
+        .header h1 { margin: 0; font-size: 24px; color: white; }
+        .header .icon { font-size: 48px; margin-bottom: 10px; }
+        .body { padding: 30px; }
+        .body h2 { color: #10b981; margin-top: 0; }
+        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .detail-row .label { color: #94a3b8; }
+        .detail-row .value { color: #e2e8f0; font-weight: 600; }
+        .status-badge { display: inline-block; padding: 6px 16px; border-radius: 8px; background: rgba(16,185,129,0.2); color: #10b981; font-weight: 700; font-size: 14px; }
+        .footer { padding: 20px 30px; text-align: center; background: #0f172a; color: #64748b; font-size: 12px; }
+        .footer a { color: #3b82f6; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="icon">✓</div>
+            <h1>Claim Approved</h1>
+        </div>
+        <div class="body">
+            <h2 th:text="'Hello, ' + ${claimantName} + '!'">Hello!</h2>
+            <p>Great news! Your food safety claim has been reviewed and <strong>approved</strong>. Your refund is being processed.</p>
+
+            <div class="detail-row">
+                <span class="label">Claim ID</span>
+                <span class="value" th:text="'#' + ${claimId}">#0</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Restaurant</span>
+                <span class="value" th:text="${restaurantName}">Restaurant</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Amount</span>
+                <span class="value" th:text="'₹' + ${amount}">₹0</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Status</span>
+                <span class="status-badge">APPROVED</span>
+            </div>
+
+            <p style="margin-top: 20px;">Your refund will be credited within 3-5 business days. Thank you for helping us maintain food safety standards.</p>
+        </div>
+        <div class="footer">
+            <p>This is an automated notification from <a href="#">FoodShield</a>.</p>
+            <p>© 2024 FoodShield™ — AI-Powered Food Safety Platform</p>
+        </div>
+    </div>
+</body>
+</html>

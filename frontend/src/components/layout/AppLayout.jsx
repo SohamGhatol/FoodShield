@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard,
     Files,
@@ -9,7 +9,9 @@ import {
     User,
     Search,
     Bell,
-    TrendingUp
+    TrendingUp,
+    ClipboardList,
+    Users
 } from 'lucide-react';
 import './AppLayout.css';
 
@@ -44,6 +46,14 @@ const Sidebar = () => {
                 <NavLink to="/reports" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
                     <TrendingUp size={20} />
                     <span>Reports</span>
+                </NavLink>
+                <NavLink to="/audit-log" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+                    <ClipboardList size={20} />
+                    <span>Audit Log</span>
+                </NavLink>
+                <NavLink to="/users" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+                    <Users size={20} />
+                    <span>Users</span>
                 </NavLink>
             </nav>
 

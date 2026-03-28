@@ -1,0 +1,60 @@
+﻿C:\Users\soham\FoodShield\frontend\src\pages\Blacklist.jsx:63 -> Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  61 |
+  62 |     useEffect(() => {
+> 63 |         fetchBlacklist();
+     |         ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  64 |     }, []);
+  65 |
+  66 |
+C:\Users\soham\FoodShield\frontend\src\pages\ClaimsList.jsx:31 -> Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  29 |
+  30 |     useEffect(() => {
+> 31 |         fetchClaims();
+     |         ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  32 |     }, []);
+  33 |
+  34 |     const filteredClaims = claims.filter(claim => {
+C:\Users\soham\FoodShield\frontend\src\pages\Dashboard.jsx:68 -> Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  66 |
+  67 |     useEffect(() => {
+> 68 |         fetchDashboardData();
+     |         ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  69 |     }, []);
+  70 |
+  71 |
+C:\Users\soham\FoodShield\frontend\src\pages\Settings.jsx:30 -> Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  28 |
+  29 |     useEffect(() => {
+> 30 |         fetchSettings();
+     |         ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  31 |     }, []);
+  32 |
+  33 |     const handleChange = (field, value) => {

@@ -1,0 +1,501 @@
+/* ======================================
+   Submit Claim Modal — Premium Design
+   ====================================== */
+
+/* Overlay */
+.scm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(2, 6, 23, 0.75);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 1rem;
+    animation: scm-fade-in 0.2s ease-out;
+}
+
+@keyframes scm-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* Panel */
+.scm-panel {
+    width: 100%;
+    max-width: 800px; /* Widened for 2 columns */
+    max-height: 90vh;
+    overflow-y: auto;
+    background: linear-gradient(145deg, #1e293b, #162032);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    border-radius: 20px;
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.04),
+        0 24px 60px rgba(0, 0, 0, 0.5),
+        0 8px 20px rgba(99, 102, 241, 0.1);
+    animation: scm-slide-up 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    scrollbar-width: thin;
+    scrollbar-color: #334155 transparent;
+}
+
+@keyframes scm-slide-up {
+    from { opacity: 0; transform: translateY(32px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Header */
+.scm-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem 1.75rem 1.25rem;
+}
+
+.scm-header-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    flex-shrink: 0;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+}
+
+.scm-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #f8fafc;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+
+.scm-subtitle {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+.scm-close-btn {
+    margin-left: auto;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.scm-close-btn:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+}
+
+.scm-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.2), transparent);
+    margin: 0 1.75rem;
+}
+
+/* Form */
+.scm-form {
+    padding: 1.5rem 1.75rem 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+}
+
+/* 2-Column Layout */
+.scm-form-columns {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 1.5rem;
+}
+
+.scm-col-left {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+}
+
+.scm-col-right {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Internal Row for Name + Restaurant */
+.scm-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.9rem;
+}
+
+/* Field */
+.scm-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+/* Label */
+.scm-label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #94a3b8;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.scm-label svg {
+    color: #6366f1;
+    flex-shrink: 0;
+}
+
+.scm-label-hint {
+    margin-left: auto;
+    font-size: 0.72rem;
+    font-weight: 400;
+    color: #475569;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+/* Input */
+.scm-input {
+    width: 100%;
+    padding: 0.7rem 0.9rem;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(99, 102, 241, 0.15);
+    border-radius: 10px;
+    color: #f1f5f9;
+    font-size: 0.92rem;
+    font-family: 'Inter', sans-serif;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+}
+
+.scm-input:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.scm-input::placeholder {
+    color: #475569;
+}
+
+/* Prefixed amount input */
+.scm-input-prefix-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.scm-prefix {
+    position: absolute;
+    left: 0.9rem;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #6366f1;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.scm-input-prefixed {
+    padding-left: 1.8rem;
+}
+
+/* Textarea */
+.scm-textarea {
+    width: 100%;
+    padding: 0.75rem 0.9rem;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(99, 102, 241, 0.15);
+    border-radius: 10px;
+    color: #f1f5f9;
+    font-size: 0.92rem;
+    font-family: 'Inter', sans-serif;
+    resize: vertical;
+    min-height: 110px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    line-height: 1.6;
+}
+
+.scm-textarea:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.scm-textarea::placeholder {
+    color: #475569;
+}
+
+.scm-char-count {
+    font-size: 0.72rem;
+    color: #475569;
+    text-align: right;
+    margin-top: -0.2rem;
+}
+
+/* Upload Box */
+.scm-upload-box {
+    position: relative;
+    min-height: 130px;
+    border: 2px dashed rgba(99, 102, 241, 0.25);
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.25s, background 0.25s;
+}
+
+.scm-upload-tall {
+    flex: 1; /* stretches to match left column height */
+    min-height: 250px;
+}
+
+.scm-upload-box:hover {
+    border-color: rgba(99, 102, 241, 0.55);
+    background: rgba(99, 102, 241, 0.04);
+}
+
+.scm-upload-box.drag-over {
+    border-color: #6366f1;
+    background: rgba(99, 102, 241, 0.08);
+}
+
+.scm-upload-box.has-files {
+    border-style: solid;
+    border-color: rgba(99, 102, 241, 0.3);
+    align-items: flex-start;
+}
+
+.scm-file-input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.scm-upload-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    pointer-events: none;
+    user-select: none;
+    padding: 1rem;
+}
+
+.scm-upload-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6366f1;
+    margin-bottom: 0.5rem;
+}
+
+.scm-upload-text {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #94a3b8;
+}
+
+.scm-upload-sub {
+    font-size: 0.78rem;
+    color: #475569;
+}
+
+/* Image previews */
+.scm-previews {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 15px;
+    pointer-events: none;
+    width: 100%;
+}
+
+.scm-preview-thumb {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid rgba(99, 102, 241, 0.35);
+    flex-shrink: 0;
+}
+
+.scm-preview-large {
+    width: 85px;
+    height: 85px;
+}
+
+.scm-preview-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.scm-preview-overlay {
+    position: absolute;
+    bottom: 4px;
+    right: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.9);
+    background: rgba(0,0,0,0.5);
+    border-radius: 4px;
+    padding: 2px 5px;
+}
+
+.scm-preview-add {
+    border-radius: 8px;
+    border: 2px dashed rgba(99, 102, 241, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    color: #6366f1;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+/* Error */
+.scm-error {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    border-radius: 10px;
+    padding: 0.65rem 0.9rem;
+    font-size: 0.85rem;
+    color: #fca5a5;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Actions */
+.scm-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.scm-btn-cancel {
+    padding: 0.7rem 1.4rem;
+    border-radius: 10px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #94a3b8;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+}
+
+.scm-btn-cancel:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.18);
+    color: #f1f5f9;
+}
+
+.scm-btn-submit {
+    padding: 0.7rem 1.75rem;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border: none;
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+    letter-spacing: 0.01em;
+}
+
+.scm-btn-submit:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+}
+
+.scm-btn-submit:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.scm-btn-submit:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Loading state */
+.scm-loading {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.scm-spinner {
+    width: 15px;
+    height: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: scm-spin 0.7s linear infinite;
+    display: inline-block;
+}
+
+@keyframes scm-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .scm-form-columns {
+        grid-template-columns: 1fr;
+    }
+    .scm-upload-tall {
+        min-height: 160px;
+    }
+}
+
+@media (max-width: 500px) {
+    .scm-row {
+        grid-template-columns: 1fr;
+    }
+    .scm-panel {
+        border-radius: 16px;
+    }
+    .scm-header,
+    .scm-form {
+        padding-left: 1.25rem;
+        padding-right: 1.25rem;
+    }
+}

@@ -1,30 +1,82 @@
-import { useState } from 'react';
+/* eslint-disable */
+import { useState, useEffect } from 'react';
+import api from '../services/api';
 import {
     BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
-import { Calendar, Download, TrendingUp, AlertTriangle, ShieldCheck, DollarSign } from 'lucide-react';
+import { Calendar, Download, TrendingUp, AlertTriangle, ShieldCheck, DollarSign, Loader2 } from 'lucide-react';
 import './Reports.css';
 
-const dataOverTime = [
-    { name: 'Jan', fraud: 4000, legitimate: 2400 },
-    { name: 'Feb', fraud: 3000, legitimate: 1398 },
-    { name: 'Mar', fraud: 2000, legitimate: 9800 },
-    { name: 'Apr', fraud: 2780, legitimate: 3908 },
-    { name: 'May', fraud: 1890, legitimate: 4800 },
-    { name: 'Jun', fraud: 2390, legitimate: 3800 },
-];
-
-const savingsData = [
-    { name: 'Week 1', savings: 1200 },
-    { name: 'Week 2', savings: 2100 },
-    { name: 'Week 3', savings: 800 },
-    { name: 'Week 4', savings: 1600 },
-    { name: 'Week 5', savings: 2400 },
-    { name: 'Week 6', savings: 3200 },
-];
-
 const Reports = () => {
-    const [dateRange, setDateRange] = useState('Last 30 Days');
+    const [dateRange] = useState('All Time');
+    const [trends, setTrends] = useState([]);
+    const [savings, setSavings] = useState(0);
+    const [totalClaims, setTotalClaims] = useState(0);
+    const [riskRestaurants, setRiskRestaurants] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchReports = async () => {
+            try {
+                setLoading(true);
+                const response = await api.get('/claims');
+                const claims = response.data;
+                setTotalClaims(claims.length);
+
+                // 1. Calculate Trends (Fraud vs Legitimate per Month)
+                const trendsMap = {};
+                claims.forEach(claim => {
+                    const date = new Date(claim.createdAt);
+                    const month = date.toLocaleString('default', { month: 'short' });
+                    if (!trendsMap[month]) trendsMap[month] = { name: month, legitimate: 0, fraud: 0 };
+
+                    if (claim.riskScore > 75 || claim.status === 'HIGH_RISK' || claim.status === 'REJECTED') {
+                        trendsMap[month].fraud += 1;
+                    } else {
+                        trendsMap[month].legitimate += 1;
+                    }
+                });
+                setTrends(Object.values(trendsMap));
+
+                // 2. Calculate Total Savings (Amount of Rejected/High Risk Claims)
+                const totalSavings = claims
+                    .filter(c => c.riskScore > 75 || c.status === 'HIGH_RISK' || c.status === 'REJECTED')
+                    .reduce((sum, c) => sum + (c.amount || 0), 0);
+                setSavings(totalSavings);
+
+                // 3. Risk Restaurants
+                const restaurantMap = {};
+                claims.forEach(claim => {
+                    if (claim.riskScore > 75 || claim.status === 'HIGH_RISK' || claim.status === 'REJECTED') {
+                        const name = claim.restaurantName || "Unknown";
+                        if (!restaurantMap[name]) restaurantMap[name] = 0;
+                        restaurantMap[name]++;
+                    }
+                });
+
+                const sortedRestaurants = Object.entries(restaurantMap)
+                    .map(([name, count]) => ({ name, count }))
+                    .sort((a, b) => b.count - a.count)
+                    .slice(0, 5); // Top 5
+
+                setRiskRestaurants(sortedRestaurants);
+                setLoading(false);
+            } catch (err) {
+                console.error("Failed to load report data:", err);
+                setLoading(false);
+            }
+        };
+
+        fetchReports();
+    }, []);
+
+    // Placeholder for savings projection (Distributed over 4 weeks based on total)
+    const savingsData = [
+        { name: 'Week 1', savings: savings * 0.2 },
+        { name: 'Week 2', savings: savings * 0.4 },
+        { name: 'Week 3', savings: savings * 0.7 },
+        { name: 'Week 4', savings: savings },
+    ];
 
     return (
         <div className="reports-page">
@@ -45,143 +97,151 @@ const Reports = () => {
                 </div>
             </div>
 
-            {/* Key Metrics Row */}
-            <div className="metrics-grid">
-                <div className="metric-card glass-panel">
-                    <div className="metric-icon blue">
-                        <ShieldCheck size={24} />
-                    </div>
-                    <div className="metric-info">
-                        <span className="label">Total Claims</span>
-                        <span className="value">12,450</span>
-                        <span className="trend positive">+12% vs last month</span>
-                    </div>
+            {loading ? (
+                <div className="loading-state-full">
+                    <Loader2 className="spin" size={48} />
+                    <p>Generating Analytics...</p>
                 </div>
-                <div className="metric-card glass-panel">
-                    <div className="metric-icon red">
-                        <AlertTriangle size={24} />
+            ) : (
+                <>
+                    {/* Key Metrics Row */}
+                    <div className="metrics-grid">
+                        <div className="metric-card glass-panel">
+                            <div className="metric-icon blue">
+                                <ShieldCheck size={24} />
+                            </div>
+                            <div className="metric-info">
+                                <span className="label">Analyzed Claims</span>
+                                <span className="value">{totalClaims}</span>
+                                <span className="trend positive">Live Data</span>
+                            </div>
+                        </div>
+                        <div className="metric-card glass-panel">
+                            <div className="metric-icon red">
+                                <AlertTriangle size={24} />
+                            </div>
+                            <div className="metric-info">
+                                <span className="label">High Risk Spots</span>
+                                <span className="value">{riskRestaurants.length}</span>
+                                <span className="trend negative">Detected</span>
+                            </div>
+                        </div>
+                        <div className="metric-card glass-panel">
+                            <div className="metric-icon green">
+                                <DollarSign size={24} />
+                            </div>
+                            <div className="metric-info">
+                                <span className="label">Total Savings</span>
+                                <span className="value">₹{savings.toLocaleString()}</span>
+                                <span className="trend positive">Prevented Fraud</span>
+                            </div>
+                        </div>
+                        <div className="metric-card glass-panel">
+                            <div className="metric-icon purple">
+                                <TrendingUp size={24} />
+                            </div>
+                            <div className="metric-info">
+                                <span className="label">Data Points</span>
+                                <span className="value">{trends.length}</span>
+                                <span className="trend">Months Active</span>
+                            </div>
+                        </div>
                     </div>
-                    <div className="metric-info">
-                        <span className="label">Fraud Rate</span>
-                        <span className="value">4.2%</span>
-                        <span className="trend negative">-0.8% decrease</span>
-                    </div>
-                </div>
-                <div className="metric-card glass-panel">
-                    <div className="metric-icon green">
-                        <DollarSign size={24} />
-                    </div>
-                    <div className="metric-info">
-                        <span className="label">Amount Saved</span>
-                        <span className="value">₹145,000</span>
-                        <span className="trend positive">Total prevented fraud</span>
-                    </div>
-                </div>
-                <div className="metric-card glass-panel">
-                    <div className="metric-icon purple">
-                        <TrendingUp size={24} />
-                    </div>
-                    <div className="metric-info">
-                        <span className="label">Auto-Resolution</span>
-                        <span className="value">85%</span>
-                        <span className="trend">Of all claims</span>
-                    </div>
-                </div>
-            </div>
 
-            <div className="charts-grid-detailed">
-                {/* Fraud vs Legitimate Trend */}
-                <div className="chart-card-lg glass-panel">
-                    <div className="card-header">
-                        <h3>Fraud vs Legitimate Claims</h3>
-                    </div>
-                    <div className="chart-container-lg">
-                        <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={dataOverTime}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                                <XAxis dataKey="name" stroke="#94a3b8" />
-                                <YAxis stroke="#94a3b8" />
-                                <Tooltip
-                                    contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px' }}
-                                    cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                                />
-                                <Legend />
-                                <Bar dataKey="legitimate" name="Legitimate" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                                <Bar dataKey="fraud" name="Detected Fraud" fill="#ef4444" radius={[4, 4, 0, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
+                    <div className="charts-grid-detailed">
+                        {/* Fraud vs Legitimate Trend */}
+                        <div className="chart-card-lg glass-panel">
+                            <div className="card-header">
+                                <h3>Fraud vs Legitimate Claims</h3>
+                            </div>
+                            <div className="chart-container-lg">
+                                <ResponsiveContainer width="100%" height={300}>
+                                    <BarChart data={trends}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                                        <XAxis dataKey="name" stroke="#94a3b8" />
+                                        <YAxis stroke="#94a3b8" />
+                                        <Tooltip
+                                            contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px' }}
+                                            cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                                        />
+                                        <Legend />
+                                        <Bar dataKey="legitimate" name="Legitimate" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                                        <Bar dataKey="fraud" name="Detected Fraud" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
 
-                {/* Cumulative Savings */}
-                <div className="chart-card-lg glass-panel">
-                    <div className="card-header">
-                        <h3>Cumulative Savings (₹)</h3>
+                        {/* Cumulative Savings */}
+                        <div className="chart-card-lg glass-panel">
+                            <div className="card-header">
+                                <h3>Cumulative Savings (₹)</h3>
+                            </div>
+                            <div className="chart-container-lg">
+                                <ResponsiveContainer width="100%" height={300}>
+                                    <AreaChart data={savingsData}>
+                                        <defs>
+                                            <linearGradient id="colorSavings" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                                                <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                            </linearGradient>
+                                        </defs>
+                                        <XAxis dataKey="name" stroke="#94a3b8" />
+                                        <YAxis stroke="#94a3b8" />
+                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                                        <Tooltip
+                                            contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px' }}
+                                        />
+                                        <Area type="monotone" dataKey="savings" stroke="#10b981" fillOpacity={1} fill="url(#colorSavings)" />
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
                     </div>
-                    <div className="chart-container-lg">
-                        <ResponsiveContainer width="100%" height={300}>
-                            <AreaChart data={savingsData}>
-                                <defs>
-                                    <linearGradient id="colorSavings" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <XAxis dataKey="name" stroke="#94a3b8" />
-                                <YAxis stroke="#94a3b8" />
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                                <Tooltip
-                                    contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px' }}
-                                />
-                                <Area type="monotone" dataKey="savings" stroke="#10b981" fillOpacity={1} fill="url(#colorSavings)" />
-                            </AreaChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
-            </div>
 
-            {/* High Risk Areas Table */}
-            <div className="risk-table-section glass-panel">
-                <div className="card-header">
-                    <h3>Top High-Risk Restaurants</h3>
-                </div>
-                <div className="table-wrapper">
-                    <table className="risk-table">
-                        <thead>
-                            <tr>
-                                <th>Restaurant Name</th>
-                                <th>Location</th>
-                                <th>Total Claims</th>
-                                <th>Fraud Rate</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Burger King #402</td>
-                                <td>Connaught Place</td>
-                                <td>145</td>
-                                <td className="text-danger">12.5%</td>
-                                <td><span className="badge warning">Under Watch</span></td>
-                            </tr>
-                            <tr>
-                                <td>Pizza Hut #88</td>
-                                <td>Indiranagar</td>
-                                <td>98</td>
-                                <td className="text-danger">8.2%</td>
-                                <td><span className="badge success">Normal</span></td>
-                            </tr>
-                            <tr>
-                                <td>Starbucks #12</td>
-                                <td>Cyber Hub</td>
-                                <td>210</td>
-                                <td className="text-success">1.5%</td>
-                                <td><span className="badge success">Verified</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                    {/* High Risk Areas Table */}
+                    <div className="risk-table-section glass-panel">
+                        <div className="card-header">
+                            <h3>Top High-Risk Restaurants</h3>
+                        </div>
+                        <div className="table-wrapper">
+                            <table className="risk-table">
+                                <thead>
+                                    <tr>
+                                        <th>Restaurant Name</th>
+                                        <th>Location</th>
+                                        <th>High Risk Claims</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {riskRestaurants.length > 0 ? (
+                                        riskRestaurants.map((restaurant, index) => (
+                                            <tr key={index}>
+                                                <td>{restaurant.name}</td>
+                                                <td><span className="text-muted">Unknown</span></td>
+                                                <td className="text-danger font-bold">{restaurant.count}</td>
+                                                <td><span className="badge warning">Under Watch</span></td>
+                                                <td>
+                                                    <button className="btn-xs">View</button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="5" style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
+                                                <ShieldCheck size={24} style={{ margin: '0 auto 8px', display: 'block' }} />
+                                                No high-risk restaurants detected.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
     );
 };

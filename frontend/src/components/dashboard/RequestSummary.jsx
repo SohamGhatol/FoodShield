@@ -1,7 +1,12 @@
 import { CheckCircle, XCircle, Clock, ShieldCheck } from 'lucide-react';
 import './RequestSummary.css';
 
-const RequestSummary = () => {
+const RequestSummary = ({ stats }) => {
+    const total = stats?.total_claims ?? '—';
+    const approved = stats?.auto_approved ?? '—';
+    const rejected = stats?.auto_rejected ?? '—';
+    const pending = stats?.pending_reviews ?? '—';
+
     return (
         <div className="request-summary glass-panel">
             <div className="summary-header">
@@ -11,7 +16,7 @@ const RequestSummary = () => {
 
             <div className="summary-grid">
                 <div className="summary-card total">
-                    <div className="value">142</div>
+                    <div className="value">{total}</div>
                     <div className="label">Total Requests</div>
                 </div>
 
@@ -19,7 +24,7 @@ const RequestSummary = () => {
                     <div className="summary-item success">
                         <div className="icon-box"><CheckCircle size={16} /></div>
                         <div className="info">
-                            <span className="count">89</span>
+                            <span className="count">{approved}</span>
                             <span className="desc">Auto-Approved (Refund)</span>
                         </div>
                     </div>
@@ -27,7 +32,7 @@ const RequestSummary = () => {
                     <div className="summary-item danger">
                         <div className="icon-box"><XCircle size={16} /></div>
                         <div className="info">
-                            <span className="count">32</span>
+                            <span className="count">{rejected}</span>
                             <span className="desc">Auto-Rejected (AI Detected)</span>
                         </div>
                     </div>
@@ -35,7 +40,7 @@ const RequestSummary = () => {
                     <div className="summary-item warning">
                         <div className="icon-box"><Clock size={16} /></div>
                         <div className="info">
-                            <span className="count">21</span>
+                            <span className="count">{pending}</span>
                             <span className="desc">Pending Manual Review</span>
                         </div>
                     </div>
