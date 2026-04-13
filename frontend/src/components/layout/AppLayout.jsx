@@ -17,6 +17,12 @@ import './AppLayout.css';
 
 const Sidebar = () => {
     const navigate = useNavigate();
+    const userStr = localStorage.getItem('user');
+    const userObj = userStr ? JSON.parse(userStr) : null;
+    const isBasicUser = userObj && userObj.role === 'USER';
+    const isAnalyst = userObj && ['ANALYST'].includes(userObj.role);
+    const isAdmin = userObj && ['SUPER_ADMIN', 'ADMIN'].includes(userObj.role);
+
     return (
         <aside className="sidebar glass-panel">
             <div className="sidebar-header">
@@ -35,26 +41,36 @@ const Sidebar = () => {
                     <Files size={20} />
                     <span>Claims</span>
                 </NavLink>
-                <NavLink to="/settings" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-                    <Settings size={20} />
-                    <span>Settings</span>
-                </NavLink>
-                <NavLink to="/blacklist" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-                    <ShieldAlert size={20} />
-                    <span>Blacklist</span>
-                </NavLink>
-                <NavLink to="/reports" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-                    <TrendingUp size={20} />
-                    <span>Reports</span>
-                </NavLink>
-                <NavLink to="/audit-log" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-                    <ClipboardList size={20} />
-                    <span>Audit Log</span>
-                </NavLink>
-                <NavLink to="/users" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-                    <Users size={20} />
-                    <span>Users</span>
-                </NavLink>
+                {!isBasicUser && (
+                    <NavLink to="/settings" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+                        <Settings size={20} />
+                        <span>Settings</span>
+                    </NavLink>
+                )}
+                {!isBasicUser && (
+                    <NavLink to="/blacklist" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+                        <ShieldAlert size={20} />
+                        <span>Blacklist</span>
+                    </NavLink>
+                )}
+                {!isBasicUser && (
+                    <NavLink to="/reports" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+                        <TrendingUp size={20} />
+                        <span>Reports</span>
+                    </NavLink>
+                )}
+                {!isBasicUser && (
+                    <NavLink to="/audit-log" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+                        <ClipboardList size={20} />
+                        <span>Audit Log</span>
+                    </NavLink>
+                )}
+                {isAdmin && (
+                    <NavLink to="/users" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+                        <Users size={20} />
+                        <span>Users</span>
+                    </NavLink>
+                )}
             </nav>
 
             <div className="sidebar-footer">
@@ -68,6 +84,8 @@ const Sidebar = () => {
 };
 // ... Header and AppLayout export remains same, just update Sidebar NavLinks
 const Header = () => {
+    const userStr = localStorage.getItem('user');
+    const userObj = userStr ? JSON.parse(userStr) : null;
     return (
         <header className="header glass-panel">
             <div className="search-bar">
@@ -84,7 +102,8 @@ const Header = () => {
                     <div className="avatar">
                         <User size={20} />
                     </div>
-                    <span className="username">Admin</span>
+                    <span className="username">{userObj?.username || 'User'}</span>
+                    <span className="user-role-badge" style={{ fontSize: '0.7em', padding: '2px 6px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', marginLeft: '6px' }}>{userObj?.role || ''}</span>
                 </div>
             </div>
         </header>

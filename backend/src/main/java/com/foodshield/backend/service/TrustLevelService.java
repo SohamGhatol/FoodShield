@@ -40,7 +40,7 @@ public class TrustLevelService {
             newLevel = "GOLD";
         } else if (safeCount >= 2 && fraudCount <= 1) {
             newLevel = "SILVER";
-        } else if (safeCount >= 1) {
+        } else if (safeCount >= 1 && fraudCount == 0) {
             newLevel = "BRONZE";
         } else {
             newLevel = "NEW";

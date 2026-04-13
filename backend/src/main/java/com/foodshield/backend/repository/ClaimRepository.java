@@ -9,6 +9,7 @@ import java.util.List;
 @Repository
 public interface ClaimRepository extends JpaRepository<Claim, Long> {
         List<Claim> findByStatus(String status);
+        List<Claim> findByUser_Username(String username);
 
         long countByStatus(String status);
 

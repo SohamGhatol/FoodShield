@@ -72,17 +72,18 @@ This starts all 4 services. Wait about 60 seconds for the backend and ML service
 ## 📋 Features
 
 ### ✅ Claims Management
-- **Submit Claims**: Upload a food photo with restaurant name, claimant name, and amount
+- **Submit Claims**: Upload multiple food photos with restaurant name, claimant name, and amount
 - **AI Analysis**: Automatic image analysis on submission (food verification + AI detection)
 - **Filter & Sort**: Filter by status (ALL/HIGH_RISK/REVIEW/SAFE/REJECTED), risk score range; sort by date, risk score, or status priority
 - **Export CSV**: Download all visible claims as a spreadsheet
-- **Approve/Reject**: Manual one-click status updates from claim list and detail views
-- **Claim Detail View**: Full breakdown of AI score, metadata score, behavioral score, and explanation
+- **Approve/Reject**: Context-aware one-click status updates that are dynamically restricted to valid active states (e.g. 'REVIEW' or 'ANALYZING')
+- **Claim Detail View**: Full breakdown of AI score, metadata score, behavioral score, and explanation with unified multi-image preview support
 
 ### 🤖 ML Fraud Engine
 - **Two-model pipeline**:
   - `MobileNetV2` (ImageNet) — checks if it's actually food (1000-class classifier)
   - `EfficientNetB0` (trained) — detects AI-generated vs real photos
+- **Duplicate Image Detection (pHash)**: Backend perceptual hashing computes and checks for reused or highly similar past images
 - **Food keyword matching**: 80+ food terms including Indian/Asian cuisines
 - **Uncertainty band**: Confidence 0.35–0.65 → routes to Manual Review instead of auto-reject
 - **Weighted risk score**: `0.6*AI + 0.2*Metadata + 0.2*Behavioral`
@@ -102,6 +103,14 @@ This starts all 4 services. Wait about 60 seconds for the backend and ML service
 ### 🚫 Blacklist
 - Add users to a blacklist with a reason
 - All future claims from blacklisted users are auto-rejected with risk score 100
+
+### 🛡️ Security & Role-Based Access Control (RBAC)
+- **Role-Based Workflows**: Core application views and administrative actions (approve/reject/analyze) are dynamically protected and visible strictly based on authenticated roles.
+- **Vulnerability Patches**: Protection against Insecure Direct Object References (IDOR) to control data leakage and stringent privilege escalation prevention to safeguard roles and user models.
+
+### 📜 Audit Logs
+- **Comprehensive Auditing**: A unified UI and backend service backing an extensive audit log to track system actions, configurations, security interventions, claim status updates, and duplicate image events.
+- **Export & Search**: Search logs by staff/user name, filter by action types, and export CSVs.
 
 ---
 
@@ -265,8 +274,9 @@ FoodShield/
 - CORS configured to allow only `http://localhost:5173`
 - File uploads validated by the ML service (must be detectable as food)
 - Blacklist check happens before any ML analysis (instant rejection)
+- State-based logic ensures claims in end-states cannot be manipulated without explicit audit logging and proper RBAC clearance
 
-> ⚠️ **For production use**: Change the JWT secret in `application.properties`, disable admin auto-creation in `AuthService.java`, restrict CORS origins, and enforce authentication on write endpoints.
+> ⚠️ **For production use**: Change the JWT secret in `application.properties`, disable admin auto-creation in `AuthService.java`, restrict CORS origins, and enforce strict HTTPS and role requirements on write endpoints.
 
 ---
 

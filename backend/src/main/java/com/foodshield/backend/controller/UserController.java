@@ -57,7 +57,13 @@ public class UserController {
         user.setTrustLevel("NEW");
         User saved = userRepository.save(user);
 
-        auditLogService.log("USER_CREATED", "Admin", "User", saved.getId(),
+        String actionUser = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        User currentUser = userRepository.findByUsername(actionUser).orElse(null);
+        if (currentUser != null && "ADMIN".equals(currentUser.getRole()) && "SUPER_ADMIN".equals(role)) {
+            return ResponseEntity.status(403).body("ADMIN cannot create a SUPER_ADMIN");
+        }
+
+        auditLogService.log("USER_CREATED", actionUser, "User", saved.getId(),
                 null, username, "Role: " + role);
 
         return ResponseEntity.ok(saved);
@@ -73,10 +79,24 @@ public class UserController {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         String oldRole = user.getRole();
+
+        String actionUser = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        User currentUser = userRepository.findByUsername(actionUser).orElse(null);
+
+        if (currentUser != null && "ADMIN".equals(currentUser.getRole()) && "SUPER_ADMIN".equals(oldRole)) {
+            return ResponseEntity.status(403).body("ADMIN cannot modify a SUPER_ADMIN");
+        }
+        if (currentUser != null && "ADMIN".equals(currentUser.getRole()) && "SUPER_ADMIN".equals(newRole)) {
+            return ResponseEntity.status(403).body("ADMIN cannot promote to SUPER_ADMIN");
+        }
+        if (user.getUsername().equals(actionUser) && !newRole.equals(oldRole)) {
+            return ResponseEntity.status(403).body("You cannot change your own role");
+        }
+
         user.setRole(newRole);
         userRepository.save(user);
 
-        auditLogService.log("ROLE_CHANGED", "Admin", "User", id,
+        auditLogService.log("ROLE_CHANGED", actionUser, "User", id,
                 oldRole, newRole, "User: " + user.getUsername());
 
         return ResponseEntity.ok(user);
@@ -87,10 +107,20 @@ public class UserController {
         User user = userRepository.findById(id).orElse(null);
         if (user == null) return ResponseEntity.notFound().build();
 
+        String actionUser = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        User currentUser = userRepository.findByUsername(actionUser).orElse(null);
+
+        if (user.getUsername().equals(actionUser)) {
+            return ResponseEntity.status(403).body("You cannot delete yourself");
+        }
+        if (currentUser != null && "ADMIN".equals(currentUser.getRole()) && "SUPER_ADMIN".equals(user.getRole())) {
+            return ResponseEntity.status(403).body("ADMIN cannot delete a SUPER_ADMIN");
+        }
+
         String username = user.getUsername();
         userRepository.deleteById(id);
 
-        auditLogService.log("USER_DELETED", "Admin", "User", id,
+        auditLogService.log("USER_DELETED", actionUser, "User", id,
                 username, null, "User deleted");
 
         return ResponseEntity.ok().body("User deleted");

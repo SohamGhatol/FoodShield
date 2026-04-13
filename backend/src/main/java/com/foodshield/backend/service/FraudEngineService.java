@@ -57,15 +57,15 @@ public class FraudEngineService {
                 // E.g., if a user has 3 or more previously Rejected/Fraud/High-Risk claims, auto-blacklist them.
                 if (!blacklistService.isBlacklisted(username)) {
                         long fraudCount = claimRepository.countByUser_UsernameAndStatusIn(
-                                username, Arrays.asList("REJECTED", "FRAUD", "HIGH_RISK"));
+                                username, Arrays.asList("FRAUD", "HIGH_RISK"));
                         
-                        if (fraudCount >= 3) {
-                                behaviorAnalysis = "Negative Feedback: Suspicious behaviour detected. The user has a severe history of " + fraudCount + " fraudulent/rejected claims. Automatic blacklisting enforced.";
-                                blacklistService.addToBlacklist(username, "Automatic blacklisting due to suspicious customer behaviour (multiple fraudulent/rejected claims).", "System");
+                        if (fraudCount >= 5) {
+                                behaviorAnalysis = "Negative Feedback: Suspicious behaviour detected. The user has a severe history of " + fraudCount + " fraudulent/high-risk claims. Automatic blacklisting enforced.";
+                                blacklistService.addToBlacklist(username, "Automatic blacklisting due to suspicious customer behaviour (multiple fraudulent/high-risk claims).", "System");
                                 auditLogService.log("AUTO_BLACKLISTED", "System", "User", null,
                                         null, username, "Auto-blacklisted after " + fraudCount + " fraudulent claims");
                         } else if (fraudCount > 0) {
-                                behaviorAnalysis = "Negative Feedback: Caution advised. The user has " + fraudCount + " previous fraudulent/rejected claims on record.";
+                                behaviorAnalysis = "Negative Feedback: Caution advised. The user has " + fraudCount + " previous fraudulent/high-risk claims on record.";
                         } else {
                                 behaviorAnalysis = "Positive Feedback: The user has a clean history and shows legitimate customer behaviour.";
                         }
@@ -82,6 +82,10 @@ public class FraudEngineService {
 
                         FraudAnalysis analysis = new FraudAnalysis(claim, 100, 100, 100, 100,
                                         "User is Blacklisted. Auto-Rejected.", behaviorAnalysis);
+                        
+                        auditLogService.log("FRAUD_ANALYZED", "System", "Claim", claim.getId(),
+                                        "ANALYZING", "REJECTED", "Score: 100, Decision: Automated, BLACKLISTED");
+                        
                         return fraudAnalysisRepository.save(analysis);
                 }
 
@@ -169,14 +173,21 @@ public class FraudEngineService {
                         status = "REVIEW";
                 }
 
-                // Force High Risk only if AI confidence is very high (raised from 0.8 to 0.92
-                // to reduce false positives while the model is untrained)
-                if (mlResponse.is_ai_generated && mlResponse.confidence > 0.92) {
+                // Force High Risk only if AI confidence is very high
+                // to reduce false positives while the model is untrained
+                if (mlResponse.is_ai_generated && mlResponse.confidence >= 0.98) {
                         status = "HIGH_RISK";
                 }
 
                 // If ML service signalled uncertainty (confidence == 0.5), route to REVIEW
-                if (!mlResponse.is_ai_generated && mlResponse.confidence == 0.5) {
+                if (!mlResponse.is_ai_generated && mlResponse.confidence == 0.5 && !"HIGH_RISK".equals(status)) {
+                        status = "REVIEW";
+                }
+
+                // If ML service failed or duplicate image found, force review or high risk
+                if (isDuplicate) {
+                        status = "HIGH_RISK";
+                } else if ("ML Service Failed".equals(mlResponse.message) && !"HIGH_RISK".equals(status)) {
                         status = "REVIEW";
                 }
 

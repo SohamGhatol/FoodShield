@@ -27,9 +27,9 @@ public class BlacklistController {
         }
 
         try {
-            // In a real app, 'addedBy' would come from SecurityContext
+            String authUser = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
             return ResponseEntity
-                    .ok(blacklistService.addToBlacklist(request.getUsername(), request.getReason(), "Admin"));
+                    .ok(blacklistService.addToBlacklist(request.getUsername(), request.getReason(), authUser));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

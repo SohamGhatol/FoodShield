@@ -5,6 +5,9 @@ import './RecentClaimsTable.css';
 import StatusBadge from '../common/StatusBadge';
 
 const RecentClaimsTable = ({ claims, onUpdateStatus }) => {
+    const userStr = localStorage.getItem('user');
+    const userObj = userStr ? JSON.parse(userStr) : null;
+
     return (
         <div className="recent-claims glass-panel">
             <div className="section-header">
@@ -59,6 +62,7 @@ const RecentClaimsTable = ({ claims, onUpdateStatus }) => {
                                                 {claim.status === 'SAFE' ? '✓ Approved' : '✗ Rejected'}
                                             </span>
                                         ) : (
+                                            userObj && ['SUPER_ADMIN', 'ADMIN', 'ANALYST'].includes(userObj.role) && (
                                             <>
                                                 <button
                                                     className="action-btn success"
@@ -75,6 +79,7 @@ const RecentClaimsTable = ({ claims, onUpdateStatus }) => {
                                                     <X size={18} />
                                                 </button>
                                             </>
+                                            )
                                         )}
                                         <Link to={`/claims/${claim.id}`} className="action-btn">
                                             <Eye size={18} />

@@ -1,3 +1,25 @@
 {
-    "java.configuration.updateBuildConfiguration": "interactive"
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "postgres.connections": [
+        {
+            "label": "FoodShield DB",
+            "host": "localhost",
+            "port": 5433,
+            "user": "postgres",
+            "password": "password",
+            "database": "foodshield_db"
+        }
+    ],
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5433,
+            "driver": "PostgreSQL",
+            "name": "FoodShield DB",
+            "database": "foodshield_db",
+            "username": "postgres",
+            "password": "password"
+        }
+    ]
 }

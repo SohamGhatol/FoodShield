@@ -11,8 +11,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
 import java.util.List;
-import java.util.Optional;
-import java.time.LocalDateTime;
 
 @Service
 public class ClaimService {
@@ -90,6 +88,11 @@ public class ClaimService {
     }
 
     public List<Claim> getAllClaims() {
+        String username = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        com.foodshield.backend.model.User user = userRepository.findByUsername(username).orElse(null);
+        if (user != null && "USER".equals(user.getRole())) {
+            return claimRepository.findByUser_Username(username);
+        }
         return claimRepository.findAll();
     }
 
@@ -98,7 +101,15 @@ public class ClaimService {
     }
 
     public Claim getClaimById(Long id) {
-        return claimRepository.findById(id).orElseThrow(() -> new RuntimeException("Claim not found"));
+        Claim claim = claimRepository.findById(id).orElseThrow(() -> new RuntimeException("Claim not found"));
+        String username = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        com.foodshield.backend.model.User user = userRepository.findByUsername(username).orElse(null);
+        if (user != null && "USER".equals(user.getRole())) {
+            if (!claim.getUser().getUsername().equals(username)) {
+                throw new RuntimeException("Access Denied");
+            }
+        }
+        return claim;
     }
 
     public Claim updateClaimStatus(Long id, String status) {

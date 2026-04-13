@@ -37,7 +37,12 @@ public class BlacklistService {
         String username = entry != null ? entry.getUsername() : "unknown";
         blacklistRepository.deleteById(id);
 
-        auditLogService.log("USER_UNBLACKLISTED", "Admin", "Blacklist", id,
+        String actionUser = "System";
+        try {
+            actionUser = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        } catch (Exception e) {}
+
+        auditLogService.log("USER_UNBLACKLISTED", actionUser, "Blacklist", id,
                 username, null, "Blacklist entry removed");
     }
 

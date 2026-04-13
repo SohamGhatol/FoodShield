@@ -73,6 +73,8 @@ const ClaimDetail = () => {
     if (error || !claim) return <div className="error-state"><p>{error || "Claim not found"}</p><button onClick={() => navigate('/claims')} className="back-btn">Back to Claims</button></div>;
 
     const trustBadge = claim.user?.trustLevel ? getTrustBadge(claim.user.trustLevel) : null;
+    const userStr = localStorage.getItem('user');
+    const userObj = userStr ? JSON.parse(userStr) : null;
 
     return (
         <div className="claim-detail-page">
@@ -100,6 +102,7 @@ const ClaimDetail = () => {
                             </span>
                         </div>
                     ) : (
+                        userObj && ['SUPER_ADMIN', 'ADMIN', 'ANALYST'].includes(userObj.role) && (
                         <>
                             <button
                                 className="action-btn-lg reject"
@@ -132,6 +135,7 @@ const ClaimDetail = () => {
                                 Approve Refund
                             </button>
                         </>
+                        )
                     )}
                 </div>
             </div>
